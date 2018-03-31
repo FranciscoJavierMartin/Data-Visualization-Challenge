@@ -1,3 +1,7 @@
+const FIRST_YEAR=1960;
+const LAST_YEAR=2016;
+const INTERVAL_DURATION=2000; //In milliseconds
+
 var format = d3.format(",");
 
 // Set tooltips
@@ -6,7 +10,7 @@ var tip = d3.tip()
   .offset([-10, 0])
   .html(function (d) {
     return "<strong>Country: </strong><span class='details'>" + d.properties.name + "<br></span>" + "<strong>Population: </strong><span class='details'>" + format(d.population) + "</span>";
-  })
+  });
 
 var margin = { top: 0, right: 0, bottom: 0, left: 0 },
   width = 960 - margin.left - margin.right,
@@ -18,7 +22,7 @@ var color = d3.scaleThreshold()
 
 var path = d3.geoPath();
 
-var svg = d3.select("body")
+var svg = d3.select("#map")
   .append("svg")
   .attr("width", width)
   .attr("height", height)
@@ -42,47 +46,11 @@ queue()
 function ready(error, data, population) {
   var populationById = {};
 
-  /*
-"Country Code": "ARB", 
-   "Country Name": "Arab World", 
-   "Value": 92490932.0, 
-   "Year": 1960
-  */
-
   population
-    .filter(d=>d["Year"]===1960)
-    .forEach( (d) => { populationById[d["Country Code"]] = +d["Value"] });
-  data.features.forEach(function (d) { d.population = populationById[d.id] });
+    .filter(d=>d["Year"]===FIRST_YEAR)
+    .forEach( d =>  populationById[d["Country Code"]] = +d["Value"] );
 
-  var i=0;
-
-  //setInterval(()=>{
-
-/*
-    1. Extrae todos los paises del agno en cuestion
-    2. Dentro de population foreach, con el d.id, 
-    buscar la poblacion de ese pais y asignarla
-
-    Javascript tiene un metodo find
-
-*/
-
-    /*var agno=1960+i;
-    i++;
-    var paises60 = countryData.filter(data => data.Year === agno);
-
-    population.forEach(function (d) { 
-      var poblacion=paises60.find(p=>{console.log('D',d);console.log('p',p);return p["Country Code"]===d.id})["Value"];
-      
-      //populationById[d.id] = +d.population;
-      populationById[d.id]= +poblacion;
-      /*En lugar de esto, que asigne la poblacion del pais, tienes el Country Code con d.id*/ 
-    //});
-    /*data.features.forEach(function (d) { d.population = populationById[d.id] });
-
-    svg.data(data.features)
-    .style('fill',function (d) { return color(populationById[d.id]); })
-  },2000)*/
+  data.features.forEach( d => d.population = populationById[d.id] );
 
   let mapa=svg.append("g")
     .attr("class", "countries")
@@ -112,34 +80,33 @@ function ready(error, data, population) {
         .style("stroke", "white")
         .style("stroke-width", 0.3);
     })
-    .style("fill", function (d) { return color(populationById[d.id]); })
+    .style("fill", d => color(populationById[d.id]));
 
-    var i=0;
+    var i=1;
+    
     let intervalo=setInterval(function(){
-      console.log("Hola")
 
-      if(1960+i===2017){
-        console.log("Fin")
+      //If we pass over the limit, stop the interval
+      if(FIRST_YEAR+i===LAST_YEAR+1){
         clearInterval(intervalo)
       }
 
-      let datos=population.filter(d=> d["Year"]===1960+i)
-      console.log(datos.length)
-      datos.forEach( (d) => { populationById[d["Country Code"]] = +d["Value"]; });
-      /*
-        Tengo el pais, sacar la poblacion segun id
-      */
-      data.features.forEach(function (d) { d.population = populationById[d.id] });
+      //Add the current year to the year label
+      d3.select("#year")
+        .html(`${FIRST_YEAR+i}`)
+
+      //Select the population per year and add to the data
+      population.filter(d=> d["Year"]===FIRST_YEAR+i)
+        .forEach( d =>  populationById[d["Country Code"]] = +d["Value"]);
+
+      //Add population data to the data map
+      data.features.forEach( d => d.population = populationById[d.id] );
+
+      //Add a color to each country according to his population
       mapa.data(data.features)
-          .style("fill", function (d) { return color(populationById[d.id]); })
+          .style("fill", d => color(populationById[d.id]) );
       
       i++;
-      console.log(i)
-
-    },2000)
+    },INTERVAL_DURATION);
 
 }
-
-
-
-
