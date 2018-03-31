@@ -36,13 +36,22 @@ svg.call(tip);
 // World_countries extracted from: https://raw.githubusercontent.com/jdamiani27/Data-Visualization-and-D3/master/lesson4/world_countries.json
 queue()
   .defer(d3.json, "world_countries.json")
-  .defer(d3.tsv, "world_population.tsv")
+  .defer(d3.json, "country-data.json")
   .await(ready);
 
 function ready(error, data, population) {
   var populationById = {};
 
-  population.forEach( (d) => { populationById[d.id] = +d.population; });
+  /*
+"Country Code": "ARB", 
+   "Country Name": "Arab World", 
+   "Value": 92490932.0, 
+   "Year": 1960
+  */
+
+  population
+    .filter(d=>d["Year"]===1960)
+    .forEach( (d) => { populationById[d["Country Code"]] = +d["Value"] });
   data.features.forEach(function (d) { d.population = populationById[d.id] });
 
   var i=0;
@@ -114,7 +123,7 @@ function ready(error, data, population) {
         clearInterval(intervalo)
       }
 
-      let datos=countryData.filter(d=> d["Year"]===1960+i)
+      let datos=population.filter(d=> d["Year"]===1960+i)
       console.log(datos.length)
       datos.forEach( (d) => { populationById[d["Country Code"]] = +d["Value"]; });
       /*
