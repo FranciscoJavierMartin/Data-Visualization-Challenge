@@ -42,16 +42,45 @@ queue()
 function ready(error, data, population) {
   var populationById = {};
 
-  population.forEach(function (d) { populationById[d.id] = +d.population; });
+  population.forEach( (d) => { populationById[d.id] = +d.population; });
   data.features.forEach(function (d) { d.population = populationById[d.id] });
 
-  svg.append("g")
+  var i=0;
+
+  //setInterval(()=>{
+
+/*
+    1. Extrae todos los paises del agno en cuestion
+    2. Dentro de population foreach, con el d.id, 
+    buscar la poblacion de ese pais y asignarla
+
+    Javascript tiene un metodo find
+
+*/
+
+    /*var agno=1960+i;
+    i++;
+    var paises60 = countryData.filter(data => data.Year === agno);
+
+    population.forEach(function (d) { 
+      var poblacion=paises60.find(p=>{console.log('D',d);console.log('p',p);return p["Country Code"]===d.id})["Value"];
+      
+      //populationById[d.id] = +d.population;
+      populationById[d.id]= +poblacion;
+      /*En lugar de esto, que asigne la poblacion del pais, tienes el Country Code con d.id*/ 
+    //});
+    /*data.features.forEach(function (d) { d.population = populationById[d.id] });
+
+    svg.data(data.features)
+    .style('fill',function (d) { return color(populationById[d.id]); })
+  },2000)*/
+
+  let mapa=svg.append("g")
     .attr("class", "countries")
     .selectAll("path")
     .data(data.features)
     .enter().append("path")
     .attr("d", path)
-    .style("fill", function (d) { return color(populationById[d.id]); })
     .style('stroke', 'white')
     .style('stroke-width', 1.5)
     .style("opacity", 0.8)
@@ -73,15 +102,33 @@ function ready(error, data, population) {
         .style("opacity", 0.8)
         .style("stroke", "white")
         .style("stroke-width", 0.3);
-    });
+    })
+    .style("fill", function (d) { return color(populationById[d.id]); })
 
-  /*
-    svg.append("path")
-    .datum(topojson.mesh(data.features, function (a, b) { return a.id !== b.id; }))
+    var i=0;
+    let intervalo=setInterval(function(){
+      console.log("Hola")
 
-    .attr("class", "names")
-    .attr("d", path);
-  */
+      if(1960+i===2017){
+        console.log("Fin")
+        clearInterval(intervalo)
+      }
+
+      let datos=countryData.filter(d=> d["Year"]===1960+i)
+      console.log(datos.length)
+      datos.forEach( (d) => { populationById[d["Country Code"]] = +d["Value"]; });
+      /*
+        Tengo el pais, sacar la poblacion segun id
+      */
+      data.features.forEach(function (d) { d.population = populationById[d.id] });
+      mapa.data(data.features)
+          .style("fill", function (d) { return color(populationById[d.id]); })
+      
+      i++;
+      console.log(i)
+
+    },2000)
+
 }
 
 
